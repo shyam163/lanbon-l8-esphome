@@ -1,6 +1,6 @@
 substitutions:
-  device_name: lanbon-l8
-  friendly_name: "Lanbon L8"
+  device_name: l8balconeyesph
+  friendly_name: "balconey_lanbon"
 
 esphome:
   name: ${device_name}
