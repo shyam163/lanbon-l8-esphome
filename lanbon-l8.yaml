@@ -12,6 +12,11 @@ esp32:
   framework:
     type: arduino
 
+# PSRAM configuration for ESP32-WROVER-B
+psram:
+  mode: octal
+  speed: 80MHz
+
 # Enable logging
 logger:
   level: DEBUG
@@ -51,29 +56,66 @@ spi:
   mosi_pin: GPIO23
   miso_pin: GPIO25
 
+# Outputs (relays, backlight, mood light)
+output:
+  # Display backlight (PWM for brightness control)
+  - platform: ledc
+    pin: GPIO5
+    id: backlight_pwm
+
+  # RGB Mood Light
+  - platform: ledc
+    pin: GPIO26
+    id: moodRed
+  - platform: ledc
+    pin: GPIO32
+    id: moodGreen
+  - platform: ledc
+    pin: GPIO33
+    id: moodBlue
+
+  # Relays
+  - platform: gpio
+    pin: GPIO12
+    id: relay_1
+  - platform: gpio
+    pin: GPIO14
+    id: relay_2
+  - platform: gpio
+    pin: GPIO27
+    id: relay_3
+
+# Lights
+light:
+  # RGB Mood Light
+  - platform: rgb
+    name: "${friendly_name} Mood Light"
+    id: mood_light
+    red: moodRed
+    green: moodGreen
+    blue: moodBlue
+    restore_mode: ALWAYS_OFF
+
+  # Backlight with brightness control
+  - platform: monochromatic
+    name: "${friendly_name} Backlight"
+    id: backlight
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
 # ST7789V Display (240x320)
 display:
-  - platform: ili9xxx
+  - id: lanbon_l8
+    platform: ili9xxx
     model: ST7789V
+    invert_colors: false
+    dimensions: 240x320
     cs_pin: GPIO22
     dc_pin: GPIO21
     reset_pin: GPIO18
-    rotation: 90
-    lambda: |-
-      it.print(0, 0, id(font1), "Lanbon L8");
-
-# Display backlight
-output:
-  - platform: gpio
-    pin: GPIO5
-    id: backlight_pin
-
-light:
-  - platform: binary
-    name: "${friendly_name} Backlight"
-    id: backlight
-    output: backlight_pin
-    restore_mode: ALWAYS_ON
+    auto_clear_enabled: false
+    update_interval: never
+    rotation: 180
 
 # Fonts for display
 font:
@@ -83,90 +125,64 @@ font:
 
 # Touch controller (FT6336)
 touchscreen:
-  - platform: ft63x6
-    id: lanbon_touchscreen
-    on_touch:
-      - lambda: |-
-          ESP_LOGI("touch", "Touch at (%d, %d)", touch.x, touch.y);
-
-# Binary sensors for touch areas (buttons on screen)
-binary_sensor:
-  # Button 1 touch area
-  - platform: touchscreen
-    name: "${friendly_name} Button 1 Touch"
-    id: button1_touch
+  platform: ft63x6
+  id: lanbon_touchscreen
+  calibration:
     x_min: 0
-    x_max: 80
     y_min: 0
-    y_max: 240
-    on_press:
-      - switch.toggle: relay1
+    x_max: 230
+    y_max: 312
+  on_touch:
+    - lambda: |-
+        ESP_LOGI("touch", "Touch at (%d, %d)", touch.x, touch.y);
+  on_release:
+    - if:
+        condition: lvgl.is_paused
+        then:
+          - lvgl.resume:
+          - lvgl.widget.redraw:
+          - light.turn_on: backlight
 
-  # Button 2 touch area
-  - platform: touchscreen
-    name: "${friendly_name} Button 2 Touch"
-    id: button2_touch
-    x_min: 80
-    x_max: 160
-    y_min: 0
-    y_max: 240
-    on_press:
-      - switch.toggle: relay2
-
-  # Button 3 touch area
-  - platform: touchscreen
-    name: "${friendly_name} Button 3 Touch"
-    id: button3_touch
-    x_min: 160
-    x_max: 240
-    y_min: 0
-    y_max: 240
-    on_press:
-      - switch.toggle: relay3
-
-# Relays
+# Relays (using output switches)
 switch:
-  - platform: gpio
+  - platform: output
     name: "${friendly_name} Relay 1"
     id: relay1
-    pin: GPIO12
+    output: relay_1
     restore_mode: RESTORE_DEFAULT_OFF
 
-  - platform: gpio
+  - platform: output
     name: "${friendly_name} Relay 2"
     id: relay2
-    pin: GPIO14
+    output: relay_2
     restore_mode: RESTORE_DEFAULT_OFF
 
-  - platform: gpio
+  - platform: output
     name: "${friendly_name} Relay 3"
     id: relay3
-    pin: GPIO27
+    output: relay_3
     restore_mode: RESTORE_DEFAULT_OFF
 
-# RGB Mood Light outputs
-output:
-  - platform: ledc
-    pin: GPIO26
-    id: mood_red
+# LVGL UI Configuration
+lvgl:
+  displays:
+    - lanbon_l8
+  touchscreens:
+    - lanbon_touchscreen
 
-  - platform: ledc
-    pin: GPIO32
-    id: mood_green
+  # Auto-dim backlight after 10 seconds of inactivity
+  on_idle:
+    timeout: 10s
+    then:
+      - light.turn_off: backlight
+      - lvgl.pause:
 
-  - platform: ledc
-    pin: GPIO33
-    id: mood_blue
-
-# RGB Mood Light
-light:
-  - platform: rgb
-    name: "${friendly_name} Mood Light"
-    id: mood_light
-    red: mood_red
-    green: mood_green
-    blue: mood_blue
-    restore_mode: ALWAYS_OFF
+  # Example pages - customize as needed
+  # pages:
+  #   - id: main_page
+  #     widgets:
+  #       - label:
+  #           text: "Lanbon L8"
 
 # Sensors
 sensor:

@@ -6,18 +6,21 @@ This is an ESPHome configuration for the Lanbon L8 smart wall switch with touchs
 
 - **3 Relay Control**: Control 3 separate relays for lights/appliances
 - **Touchscreen Interface**: 240x320 ST7789V display with FT6336 touch controller
+- **LVGL UI Framework**: Advanced UI with auto-dimming and touch-to-wake
 - **RGB Mood Light**: Controllable RGB LED for ambient lighting
-- **Display Backlight**: Controllable backlight (GPIO5)
+- **PWM Backlight**: Dimmable backlight with brightness control
+- **PSRAM Support**: Optimized for ESP32-WROVER-B with octal PSRAM
 - **WiFi Connectivity**: Connect to Home Assistant or other home automation platforms
 - **OTA Updates**: Over-the-air firmware updates
 
 ## Hardware Specifications
 
-- **MCU**: ESP32-WROVER-B
+- **MCU**: ESP32-WROVER-B with 8MB PSRAM (octal mode)
 - **Display**: ST7789V (240x320 pixels) via ili9xxx platform
-- **Touch Controller**: FT6336 (I2C)
+- **Touch Controller**: FT6336 (I2C, calibrated)
 - **Relays**: 3x GPIO-controlled relays
-- **RGB Mood Light**: Built-in RGB LED
+- **RGB Mood Light**: Built-in RGB LED (PWM controlled)
+- **Backlight**: PWM dimmable backlight
 
 ## Setup Instructions
 
@@ -44,16 +47,26 @@ openssl rand -base64 32
 pip install esphome
 ```
 
-### 3. Download Font (Optional)
+### 3. Configure Font
 
-If you want to use custom fonts on the display, download a TrueType font:
+Choose one of these options:
 
-```bash
-mkdir -p fonts
-# Download Arial or any other font you prefer
+**Option A - Use Google Fonts (recommended):**
+Edit `lanbon-l8.yaml` and change font section to:
+```yaml
+font:
+  - file: "gfonts://Roboto"
+    id: font1
+    size: 24
 ```
 
-Or comment out the font section in the YAML if not needed.
+**Option B - Use custom font:**
+```bash
+mkdir -p fonts
+# Copy your .ttf font file to fonts/ directory
+```
+
+**Option C - Comment out font section** if using LVGL only
 
 ### 4. Compile and Upload
 
@@ -110,18 +123,26 @@ Once flashed and connected to WiFi, the device should auto-discover in Home Assi
 
 ## Customization
 
-### Modify Touch Areas
+### Configure LVGL UI
 
-Adjust the touch button coordinates in the `binary_sensor` section to match your UI layout:
+The configuration includes LVGL framework for advanced UI. Customize the pages section:
 
 ```yaml
-binary_sensor:
-  - platform: touchscreen
-    x_min: 0
-    x_max: 80
-    y_min: 0
-    y_max: 240
+lvgl:
+  pages:
+    - id: main_page
+      widgets:
+        - btn:
+            id: relay1_btn
+            checkable: true
+            widgets:
+              - label:
+                  text: "Light 1"
+            on_click:
+              - switch.toggle: relay1
 ```
+
+See [ESPHome LVGL docs](https://esphome.io/components/lvgl.html) for widget examples.
 
 ### Change Relay Behavior
 
@@ -130,14 +151,28 @@ Modify the `restore_mode` to change how relays behave after power loss:
 - `RESTORE_DEFAULT_ON`: Always on after reboot
 - `RESTORE_INVERTED_DEFAULT_OFF`: Restore previous state, default off
 
-### Custom Display Content
+### Adjust Backlight Timeout
 
-Modify the `display` lambda to show custom information:
+Modify the idle timeout in the LVGL section:
 
 ```yaml
-lambda: |-
-  it.print(0, 0, id(font1), "Custom Text");
-  it.printf(0, 30, id(font1), "Temp: %.1f°C", id(temperature).state);
+lvgl:
+  on_idle:
+    timeout: 30s  # Change from 10s to 30s
+    then:
+      - light.turn_off: backlight
+      - lvgl.pause:
+```
+
+### Backlight Brightness
+
+Control backlight brightness from Home Assistant or automations:
+
+```yaml
+# Set to 50% brightness
+- light.turn_on:
+    id: backlight
+    brightness: 50%
 ```
 
 ## Troubleshooting
