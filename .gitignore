@@ -1,0 +1,19 @@
+# ESPHome
+.esphome/
+*.bin
+*.elf
+*.map
+
+# Secrets - DO NOT COMMIT
+secrets.yaml
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
