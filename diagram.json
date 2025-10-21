@@ -1,0 +1,335 @@
+{
+  "version": 1,
+  "author": "Lanbon L8 ESPHome Configuration",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-esp32-devkit-v1",
+      "id": "esp32",
+      "top": 0,
+      "left": 0,
+      "attrs": {
+        "psramSize": "8388608",
+        "flashSize": "4194304"
+      }
+    },
+    {
+      "type": "wokwi-ili9341",
+      "id": "display",
+      "top": -100,
+      "left": 300,
+      "attrs": {
+        "width": "240",
+        "height": "320"
+      }
+    },
+    {
+      "type": "wokwi-relay-module",
+      "id": "relay1",
+      "top": 200,
+      "left": 400,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-relay-module",
+      "id": "relay2",
+      "top": 280,
+      "left": 400,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-relay-module",
+      "id": "relay3",
+      "top": 360,
+      "left": 400,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-rgb-led",
+      "id": "mood_light",
+      "top": 500,
+      "left": 200,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_red",
+      "top": 490,
+      "left": 150,
+      "rotate": 90,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_green",
+      "top": 500,
+      "left": 150,
+      "rotate": 90,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_blue",
+      "top": 510,
+      "left": 150,
+      "rotate": 90,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "backlight",
+      "top": 100,
+      "left": 500,
+      "attrs": {
+        "color": "white"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_backlight",
+      "top": 100,
+      "left": 450,
+      "rotate": 0,
+      "attrs": {
+        "value": "220"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "esp32:TX",
+      "$serialMonitor:RX",
+      "",
+      []
+    ],
+    [
+      "esp32:RX",
+      "$serialMonitor:TX",
+      "",
+      []
+    ],
+    [
+      "esp32:GND.1",
+      "display:GND",
+      "black",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:3V3",
+      "display:VCC",
+      "red",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:D19",
+      "display:SCK",
+      "yellow",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:D23",
+      "display:SDI",
+      "orange",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:D25",
+      "display:SDO",
+      "purple",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:D22",
+      "display:CS",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:D21",
+      "display:D/C",
+      "blue",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:D18",
+      "display:RST",
+      "cyan",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:D5",
+      "r_backlight:1",
+      "white",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "r_backlight:2",
+      "backlight:A",
+      "white",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "backlight:C",
+      "esp32:GND.2",
+      "black",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:D12",
+      "relay1:IN",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:3V3",
+      "relay1:VCC",
+      "red",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:GND.2",
+      "relay1:GND",
+      "black",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:D14",
+      "relay2:IN",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:3V3",
+      "relay2:VCC",
+      "red",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:GND.2",
+      "relay2:GND",
+      "black",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:D27",
+      "relay3:IN",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:3V3",
+      "relay3:VCC",
+      "red",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:GND.2",
+      "relay3:GND",
+      "black",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:D26",
+      "r_red:1",
+      "red",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "r_red:2",
+      "mood_light:R",
+      "red",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:D32",
+      "r_green:1",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "r_green:2",
+      "mood_light:G",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "esp32:D33",
+      "r_blue:1",
+      "blue",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "r_blue:2",
+      "mood_light:B",
+      "blue",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "mood_light:COM",
+      "esp32:GND.2",
+      "black",
+      [
+        "h0"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

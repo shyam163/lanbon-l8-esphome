@@ -22,6 +22,15 @@ This is an ESPHome configuration for the Lanbon L8 smart wall switch with touchs
 - **RGB Mood Light**: Built-in RGB LED (PWM controlled)
 - **Backlight**: PWM dimmable backlight
 
+## Wokwi Simulation
+
+Want to test before flashing to hardware? Check out the **Wokwi simulation diagram**!
+
+- See `diagram.json` for the complete hardware wiring diagram
+- Read `WOKWI_GUIDE.md` for simulation instructions
+- Test relay control, RGB mood light, and display connections
+- Note: Touch and LVGL features require physical hardware
+
 ## Setup Instructions
 
 ### 1. Configure Secrets
