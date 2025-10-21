@@ -5,19 +5,19 @@ This is an ESPHome configuration for the Lanbon L8 smart wall switch with touchs
 ## Features
 
 - **3 Relay Control**: Control 3 separate relays for lights/appliances
-- **Touchscreen Interface**: 240x320 ILI9341/ST7789V display with FT6336U touch controller
-- **Status LEDs**: Visual feedback for each relay state
-- **Temperature Sensor**: NTC thermistor for temperature monitoring
+- **Touchscreen Interface**: 240x320 ST7789V display with FT6336 touch controller
+- **RGB Mood Light**: Controllable RGB LED for ambient lighting
+- **Display Backlight**: Controllable backlight (GPIO5)
 - **WiFi Connectivity**: Connect to Home Assistant or other home automation platforms
 - **OTA Updates**: Over-the-air firmware updates
 
 ## Hardware Specifications
 
-- **MCU**: ESP32
-- **Display**: ST7789V (240x320 pixels)
-- **Touch Controller**: FT6336U (I2C)
+- **MCU**: ESP32-WROVER-B
+- **Display**: ST7789V (240x320 pixels) via ili9xxx platform
+- **Touch Controller**: FT6336 (I2C)
 - **Relays**: 3x GPIO-controlled relays
-- **Sensors**: NTC temperature sensor
+- **RGB Mood Light**: Built-in RGB LED
 
 ## Setup Instructions
 
@@ -73,26 +73,40 @@ Once flashed and connected to WiFi, the device should auto-discover in Home Assi
 
 ## Pin Configuration
 
-| Function | GPIO Pin |
-|----------|----------|
-| Relay 1 | GPIO32 |
-| Relay 2 | GPIO33 |
-| Relay 3 | GPIO13 |
-| LED 1 | GPIO14 |
-| LED 2 | GPIO12 |
-| LED 3 | GPIO15 |
-| Display CS | GPIO5 |
-| Display DC | GPIO27 |
-| Display Reset | GPIO25 |
-| Display Backlight | - |
-| SPI CLK | GPIO18 |
-| SPI MOSI | GPIO23 |
-| SPI MISO | GPIO19 |
-| Touch SDA | GPIO21 |
-| Touch SCL | GPIO22 |
-| Touch INT | GPIO26 |
-| Temperature | GPIO36 |
-| Status LED | GPIO2 |
+### SPI (Display)
+| Pin | Function |
+|-----|----------|
+| GPIO19 | CLK |
+| GPIO23 | MOSI |
+| GPIO25 | MISO |
+| GPIO22 | CS |
+| GPIO21 | DC |
+| GPIO18 | Reset |
+
+### I²C (Touchscreen)
+| Pin | Function |
+|-----|----------|
+| GPIO4 | SDA |
+| GPIO0 | SCL |
+
+### Display
+| Pin | Function |
+|-----|----------|
+| GPIO5 | Backlight |
+
+### Relays (3-gang model)
+| Pin | Function |
+|-----|----------|
+| GPIO12 | Relay #1 |
+| GPIO14 | Relay #2 |
+| GPIO27 | Relay #3 |
+
+### RGB Mood Light
+| Pin | Function |
+|-----|----------|
+| GPIO26 | Red |
+| GPIO32 | Green |
+| GPIO33 | Blue |
 
 ## Customization
 
@@ -133,17 +147,18 @@ lambda: |-
 - Look for the fallback AP and connect to configure WiFi
 
 ### Touch not working
-- Verify I2C pins (SDA/SCL) are correct
-- Check touch interrupt pin connection
+- Verify I2C pins (GPIO4=SDA, GPIO0=SCL) are correct
+- FT6336 doesn't require interrupt pin configuration
 
 ### Relays not switching
 - Verify relay GPIO pins match your hardware
 - Check if relays need inverted logic
 
 ### Display issues
-- Confirm SPI pins are correct
-- Try different display models (ILI9341 vs ST7789V)
+- Confirm SPI pins are correct (CLK=GPIO19, MOSI=GPIO23, MISO=GPIO25)
+- Verify CS=GPIO22, DC=GPIO21, Reset=GPIO18
 - Adjust rotation parameter (0, 90, 180, 270)
+- Check backlight is enabled (GPIO5)
 
 ## Notes
 

@@ -4,8 +4,13 @@ substitutions:
 
 esphome:
   name: ${device_name}
-  platform: ESP32
+  platformio_options:
+    board_build.flash_mode: dio
+
+esp32:
   board: esp32dev
+  framework:
+    type: arduino
 
 # Enable logging
 logger:
@@ -36,26 +41,39 @@ web_server:
 
 # I2C Bus for touch controller
 i2c:
-  sda: GPIO21
-  scl: GPIO22
+  sda: GPIO4
+  scl: GPIO0
   scan: true
 
 # SPI for the display
 spi:
-  clk_pin: GPIO18
+  clk_pin: GPIO19
   mosi_pin: GPIO23
-  miso_pin: GPIO19
+  miso_pin: GPIO25
 
 # ST7789V Display (240x320)
 display:
   - platform: ili9xxx
     model: ST7789V
-    cs_pin: GPIO5
-    dc_pin: GPIO27
-    reset_pin: GPIO25
+    cs_pin: GPIO22
+    dc_pin: GPIO21
+    reset_pin: GPIO18
     rotation: 90
     lambda: |-
       it.print(0, 0, id(font1), "Lanbon L8");
+
+# Display backlight
+output:
+  - platform: gpio
+    pin: GPIO5
+    id: backlight_pin
+
+light:
+  - platform: binary
+    name: "${friendly_name} Backlight"
+    id: backlight
+    output: backlight_pin
+    restore_mode: ALWAYS_ON
 
 # Fonts for display
 font:
@@ -63,11 +81,10 @@ font:
     id: font1
     size: 24
 
-# Touch controller (FT6336U)
+# Touch controller (FT6336)
 touchscreen:
   - platform: ft63x6
     id: lanbon_touchscreen
-    interrupt_pin: GPIO26
     on_touch:
       - lambda: |-
           ESP_LOGI("touch", "Touch at (%d, %d)", touch.x, touch.y);
@@ -112,89 +129,47 @@ switch:
   - platform: gpio
     name: "${friendly_name} Relay 1"
     id: relay1
-    pin: GPIO32
+    pin: GPIO12
     restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      - light.turn_on: led1
-    on_turn_off:
-      - light.turn_off: led1
 
   - platform: gpio
     name: "${friendly_name} Relay 2"
     id: relay2
-    pin: GPIO33
+    pin: GPIO14
     restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      - light.turn_on: led2
-    on_turn_off:
-      - light.turn_off: led2
 
   - platform: gpio
     name: "${friendly_name} Relay 3"
     id: relay3
-    pin: GPIO13
+    pin: GPIO27
     restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      - light.turn_on: led3
-    on_turn_off:
-      - light.turn_off: led3
 
-# Status LEDs
-light:
-  - platform: binary
-    name: "${friendly_name} LED 1"
-    id: led1
-    output: output_led1
-    internal: true
-
-  - platform: binary
-    name: "${friendly_name} LED 2"
-    id: led2
-    output: output_led2
-    internal: true
-
-  - platform: binary
-    name: "${friendly_name} LED 3"
-    id: led3
-    output: output_led3
-    internal: true
-
+# RGB Mood Light outputs
 output:
-  - platform: gpio
-    pin: GPIO14
-    id: output_led1
+  - platform: ledc
+    pin: GPIO26
+    id: mood_red
 
-  - platform: gpio
-    pin: GPIO12
-    id: output_led2
+  - platform: ledc
+    pin: GPIO32
+    id: mood_green
 
-  - platform: gpio
-    pin: GPIO15
-    id: output_led3
+  - platform: ledc
+    pin: GPIO33
+    id: mood_blue
 
-# Temperature sensor (if available)
+# RGB Mood Light
+light:
+  - platform: rgb
+    name: "${friendly_name} Mood Light"
+    id: mood_light
+    red: mood_red
+    green: mood_green
+    blue: mood_blue
+    restore_mode: ALWAYS_OFF
+
+# Sensors
 sensor:
-  - platform: ntc
-    sensor: resistance_sensor
-    name: "${friendly_name} Temperature"
-    calibration:
-      b_constant: 3950
-      reference_temperature: 25°C
-      reference_resistance: 10kOhm
-
-  - platform: resistance
-    id: resistance_sensor
-    sensor: adc_sensor
-    configuration: DOWNSTREAM
-    resistor: 10kOhm
-
-  - platform: adc
-    id: adc_sensor
-    pin: GPIO36
-    attenuation: 11db
-    update_interval: 60s
-    internal: true
-
   # WiFi Signal Strength
   - platform: wifi_signal
     name: "${friendly_name} WiFi Signal"
@@ -215,9 +190,3 @@ text_sensor:
 
   - platform: version
     name: "${friendly_name} ESPHome Version"
-
-# Status LED (Blue LED on board)
-status_led:
-  pin:
-    number: GPIO2
-    inverted: false
